@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-const apiKey = 'd976fd59f8abe562280067f4e0b064ea';
+const apiKey = '51112130206065637c98f0e2371626fb';
 const lat = '16.0678';
 const lon = '108.2208';
 const weatherUrl =
@@ -25,7 +25,7 @@ void clearToken() {
 }
 
 // Login
-Future<String> login(String username, String password) async {
+Future<int> login(String username, String password) async {
   final uri = Uri.parse("$url/login");
   final response = await http.post(
     uri,
@@ -34,16 +34,8 @@ Future<String> login(String username, String password) async {
         <String, String>{'username': username, 'password': password}),
   );
 
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    final msg = data["msg"].toString();
-    if (msg == "Successfully authenticated")
-      accessToken = data["access_token"].toString();
-    return msg;
-  } else {
-    final msg = 'Failed to post data. Error code: ${response.statusCode}';
-    return msg;
-  }
+  print("login ${response.statusCode}");
+  return response.statusCode;
 }
 
 // Get all devices
@@ -53,13 +45,18 @@ Future<dynamic> getDevice() async {
     'Authorization': 'Bearer $accessToken',
     'Content-Type': 'application/json'
   });
-  final body = response.body;
-  final data = jsonDecode(body);
-  return data;
+  if (response.statusCode == 200) {
+    final body = response.body;
+    final data = jsonDecode(body);
+    return data;
+  } else {
+    return -1;
+  }
+
 }
 
 // Update device
-Future<void> updateDevice(deviceId, value) async {
+Future<int> updateDevice(deviceId, value) async {
   final uri = Uri.parse('$url/devices/$deviceId');
   final response = await http.put(uri,
       headers: {
@@ -68,16 +65,12 @@ Future<void> updateDevice(deviceId, value) async {
       },
       body: jsonEncode(<String, bool>{'status': value}));
 
-  print(jsonDecode(response.body));
-  if (response.statusCode == 200) {
-    print('Resource updated successfully');
-  } else {
-    print('Failed to update resource: ${response.statusCode}');
-  }
+  print("update ${response.statusCode}");
+  return response.statusCode;
 }
 
 // Add device
-Future<String> addDevice(String name, String type) async {
+Future<int> addDevice(String name, String type) async {
   final uri = Uri.parse("$url/devices");
   final response = await http.post(
     uri,
@@ -88,15 +81,7 @@ Future<String> addDevice(String name, String type) async {
     body: jsonEncode(<String, String>{'name': name, 'type': type}),
   );
 
-  print(jsonDecode(response.body));
-
-  if (response.statusCode == 200) {
-    final data = jsonDecode(response.body);
-    final msg = data["message"].toString();
-    return msg;
-  } else {
-    final msg = 'Failed to post data. Error code: ${response.statusCode}';
-    return msg;
-  }
+  print("create ${response.statusCode}");
+  return response.statusCode;
 }
 

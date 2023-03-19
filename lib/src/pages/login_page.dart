@@ -19,9 +19,9 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
       // TODO: Perform login action
-      final msg = await login(_username.trim(), _password);
-      print(msg);
-      if (msg == "Successfully authenticated") {
+      final statusCode = await login(_username.trim(), _password);
+
+      if (statusCode == 200) {
         saveUserLogin(_username);
         navigatePage(context);
       } else {
