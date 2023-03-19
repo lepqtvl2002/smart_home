@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:smart_home_pbl5/service.dart';
-import 'package:smart_home_pbl5/session.dart';
+import 'package:smart_home_pbl5/src/services/service.dart';
+import 'package:smart_home_pbl5/src/session/session.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});

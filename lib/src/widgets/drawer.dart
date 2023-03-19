@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:smart_home_pbl5/session.dart';
+import 'package:smart_home_pbl5/src/session/session.dart';
 
 // Unused
 Drawer mainDrawer = Drawer(

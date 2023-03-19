@@ -2,8 +2,8 @@ import 'dart:core';
 
 import 'package:flutter/material.dart';
 
-import 'home_page.dart';
-import 'login_page.dart';
+import 'src/pages/home_page.dart';
+import 'src/pages/login_page.dart';
 
 void main() {
   runApp(const MyApp());

@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:smart_home_pbl5/record.dart';
-import 'package:smart_home_pbl5/service.dart';
-import 'package:smart_home_pbl5/session.dart';
-import 'package:smart_home_pbl5/widget_custom.dart';
+import 'package:smart_home_pbl5/src/functions/records/record.dart';
+import 'package:smart_home_pbl5/src/services/service.dart';
+import 'package:smart_home_pbl5/src/session/session.dart';
+import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
