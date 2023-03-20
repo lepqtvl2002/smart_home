@@ -7,7 +7,7 @@ import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/session/session.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
-import '../../notification.dart';
+import '../functions/alert/alert.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -35,9 +35,9 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isPanelLightExpanded = false;
   bool _isPanelFanExpanded = false;
   late var timer;
-  bool isLoading = false;
   bool isLoadingDevices = true;
   bool isLoadingInformation = true;
+  int _count = 1;
 
   @override
   void initState() {
@@ -143,7 +143,26 @@ class _MyHomePageState extends State<MyHomePage> {
         });
       }
     } else {
-      print("Loading devices failed!!!");
+      if (mounted) {
+        setState(() {
+          _count++;
+        });
+        if (_count % 1000 == 0) {
+          showAlert(
+              const Text("Failed while loading devices!"),
+              const Text("Have trouble while loading devices! Please login again"),
+              [
+                ElevatedButton(
+                    onPressed: () => {
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, "/login", (route) => false)
+                    },
+                    child: const Text("Logout"))
+              ],
+              context);
+        }
+      }
+
     }
   }
 
@@ -168,26 +187,6 @@ class _MyHomePageState extends State<MyHomePage> {
         return const AlertDialog(
           title: Text('Add new device'),
           content: FormAddDevice(),
-        );
-      },
-    );
-  }
-
-  void _showAlert() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Alert'),
-          content: const Text('This is an alert dialog.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('OK'),
-            ),
-          ],
         );
       },
     );
@@ -255,225 +254,227 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         // Drawer content goes here
       ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                backgroundColor: Colors.transparent,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
-              ),
-            )
-          : SingleChildScrollView(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  CustomCard(
-                    // Show overview information (temperature, humidity, and number of active devices)
-                    child: Table(
-                      children: [
-                        TableRow(children: <Widget>[
-                          MyButton(
-                            text: const Text("Feels like"),
-                            icon: const Icon(
-                              Icons.thermostat,
-                              size: 50,
-                            ),
-                            onPressed: _showAlert,
-                          ),
-                          MyButton(
-                              text: const Text("Humidity"),
-                              icon: const Icon(
-                                Icons.water_drop_outlined,
-                                size: 50,
-                              ),
-                              onPressed: () => {}),
-                          MyButton(
-                              text: const Text("Activity"),
-                              icon: const Icon(
-                                Icons.visibility_outlined,
-                                size: 50,
-                              ),
-                              onPressed: () => {}),
-                        ]),
-                        TableRow(children: <Widget>[
-                          Center(
-                            child: isLoadingInformation
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      backgroundColor: Colors.transparent,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.red),
-                                    ),
-                                  )
-                                : Text("$_temperature℃",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineMedium),
-                          ),
-                          Center(
-                            child: isLoadingInformation
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      backgroundColor: Colors.transparent,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.red),
-                                    ),
-                                  )
-                                : Text("$_humidity℃",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineMedium),
-                          ),
-                          Center(
-                            child: isLoadingDevices
-                                ? const Center(
-                                    child: CircularProgressIndicator(
-                                      backgroundColor: Colors.transparent,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.red),
-                                    ),
-                                  )
-                                : Text("$_numberOfActiveDevice℃",
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineMedium),
-                          ),
-                        ])
-                      ],
+      body: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: <Widget>[
+            CustomCard(
+              // Show overview information (temperature, humidity, and number of active devices)
+              child: Table(
+                children: [
+                  TableRow(children: <Widget>[
+                    MyButton(
+                      text: const Text("Feels like"),
+                      icon: const Icon(
+                        Icons.thermostat,
+                        size: 50,
+                      ),
+                      onPressed: () => {
+                        showAlert(
+                            const Text("Temperature"),
+                            Text("$_temperature"),
+                            [
+                              ElevatedButton(
+                                  onPressed: () => {
+                                        () {
+                                          Navigator.of(context).pop();
+                                        }
+                                      },
+                                  child: const Text("OK"))
+                            ],
+                            context)
+                      },
                     ),
-                  ),
-                  isLoadingDevices
-                      ? const Center(
-                          child: Text("Loading..."),)
-                      : Wrap(
-                          children: <Widget>[
-                            Row(
-                              // Button add device
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                ElevatedButton.icon(
-                                  onPressed: _openModalAddDevice,
-                                  icon: const Text("Add new device"),
-                                  label: const Icon(Icons.add),
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                )
-                              ],
-                            ),
-                            CustomCard(
-                              // Expansion panel list contain switch control device
-                              child: ExpansionPanelList(
-                                expansionCallback:
-                                    (int index, bool isExpanded) {
-                                  setState(() {
-                                    if (index == 0) {
-                                      _isPanelDoorExpanded = !isExpanded;
-                                    } else if (index == 1) {
-                                      _isPanelLightExpanded = !isExpanded;
-                                    } else {
-                                      _isPanelFanExpanded = !isExpanded;
-                                    }
-                                  });
-                                },
-                                children: <ExpansionPanel>[
-                                  // Item of expansion panel list, include : Lights, Fans, and Doors
-                                  ExpansionPanel(
-                                    headerBuilder:
-                                        (BuildContext context, bool isExpand) {
-                                      return ListTile(
-                                        title: const Text('Door'),
-                                        subtitle: Text(
-                                            '$_numberOfActiveDoors door is open'),
-                                        leading: const CircleAvatar(
-                                          child: Icon(
-                                              Icons.door_back_door_outlined),
-                                        ),
-                                      );
-                                    },
-                                    body: Container(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          36, 0, 8, 10),
-                                      child: Wrap(
-                                        spacing: 10.0,
-                                        runSpacing: 10.0,
-                                        children: doors.map((device) {
-                                          return SwitchWrapper(
-                                              text: device["name"],
-                                              onChanged: _switchChange(
-                                                  device["id"],
-                                                  device["status"]),
-                                              value: device["status"]);
-                                        }).toList(),
-                                      ),
-                                    ),
-                                    isExpanded: _isPanelDoorExpanded,
-                                  ),
-                                  ExpansionPanel(
-                                    headerBuilder:
-                                        (BuildContext context, bool isExpand) {
-                                      return ListTile(
-                                        title: const Text('Light'),
-                                        subtitle: Text(
-                                            '$_numberOfActiveLights device is activity'),
-                                        leading: const CircleAvatar(
-                                          child: Icon(Icons.light_mode_sharp),
-                                        ),
-                                      );
-                                    },
-                                    body: Container(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          36, 0, 8, 10),
-                                      child: Wrap(
-                                        spacing: 10.0,
-                                        runSpacing: 10.0,
-                                        children: lights.map((light) {
-                                          return SwitchWrapper(
-                                              text: light["name"],
-                                              onChanged: _switchChange(
-                                                  light["id"], light["status"]),
-                                              value: light["status"]);
-                                        }).toList(),
-                                      ),
-                                    ),
-                                    isExpanded: _isPanelLightExpanded,
-                                  ),
-                                  ExpansionPanel(
-                                    headerBuilder:
-                                        (BuildContext context, bool isExpand) {
-                                      return ListTile(
-                                        title: const Text('Fan'),
-                                        subtitle: Text(
-                                            '$_numberOfActiveFans device is activity'),
-                                        leading: const CircleAvatar(
-                                          child: Icon(Icons.wind_power),
-                                        ),
-                                      );
-                                    },
-                                    body: Container(
-                                      padding: const EdgeInsets.fromLTRB(
-                                          36, 0, 8, 10),
-                                      child: Wrap(
-                                        spacing: 10.0,
-                                        runSpacing: 10.0,
-                                        children: fans.map((fan) {
-                                          return SwitchWrapper(
-                                              text: fan["name"],
-                                              onChanged: _switchChange(
-                                                  fan["id"], fan["status"]),
-                                              value: fan["status"]);
-                                        }).toList(),
-                                      ),
-                                    ),
-                                    isExpanded: _isPanelFanExpanded,
-                                  ),
-                                ],
+                    MyButton(
+                        text: const Text("Humidity"),
+                        icon: const Icon(
+                          Icons.water_drop_outlined,
+                          size: 50,
+                        ),
+                        onPressed: () => {}),
+                    MyButton(
+                        text: const Text("Activity"),
+                        icon: const Icon(
+                          Icons.visibility_outlined,
+                          size: 50,
+                        ),
+                        onPressed: () => {}),
+                  ]),
+                  TableRow(children: <Widget>[
+                    Center(
+                      child: isLoadingInformation
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                backgroundColor: Colors.transparent,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.red),
                               ),
-                            ),
-                          ],
-                        )
+                            )
+                          : Text("$_temperature℃",
+                              style:
+                                  Theme.of(context).textTheme.headlineMedium),
+                    ),
+                    Center(
+                      child: isLoadingInformation
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                backgroundColor: Colors.transparent,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.red),
+                              ),
+                            )
+                          : Text("$_humidity℃",
+                              style:
+                                  Theme.of(context).textTheme.headlineMedium),
+                    ),
+                    Center(
+                      child: isLoadingDevices
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                backgroundColor: Colors.transparent,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.red),
+                              ),
+                            )
+                          : Text("$_numberOfActiveDevice℃",
+                              style:
+                                  Theme.of(context).textTheme.headlineMedium),
+                    ),
+                  ])
                 ],
               ),
             ),
+            isLoadingDevices
+                ? const Center(
+                    child: Text("Loading..."),
+                  )
+                : Wrap(
+                    children: <Widget>[
+                      Row(
+                        // Button add device
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _openModalAddDevice,
+                            icon: const Text("Add new device"),
+                            label: const Icon(Icons.add),
+                          ),
+                          const SizedBox(
+                            width: 10,
+                          )
+                        ],
+                      ),
+                      CustomCard(
+                        // Expansion panel list contain switch control device
+                        child: ExpansionPanelList(
+                          expansionCallback: (int index, bool isExpanded) {
+                            setState(() {
+                              if (index == 0) {
+                                _isPanelDoorExpanded = !isExpanded;
+                              } else if (index == 1) {
+                                _isPanelLightExpanded = !isExpanded;
+                              } else {
+                                _isPanelFanExpanded = !isExpanded;
+                              }
+                            });
+                          },
+                          children: <ExpansionPanel>[
+                            // Item of expansion panel list, include : Lights, Fans, and Doors
+                            ExpansionPanel(
+                              headerBuilder:
+                                  (BuildContext context, bool isExpand) {
+                                return ListTile(
+                                  title: const Text('Door'),
+                                  subtitle: Text(
+                                      '$_numberOfActiveDoors door is open'),
+                                  leading: const CircleAvatar(
+                                    child: Icon(Icons.door_back_door_outlined),
+                                  ),
+                                );
+                              },
+                              body: Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
+                                child: Wrap(
+                                  spacing: 10.0,
+                                  runSpacing: 10.0,
+                                  children: doors.map((device) {
+                                    return SwitchWrapper(
+                                        text: device["name"],
+                                        onChanged: _switchChange(
+                                            device["id"], device["status"]),
+                                        value: device["status"]);
+                                  }).toList(),
+                                ),
+                              ),
+                              isExpanded: _isPanelDoorExpanded,
+                            ),
+                            ExpansionPanel(
+                              headerBuilder:
+                                  (BuildContext context, bool isExpand) {
+                                return ListTile(
+                                  title: const Text('Light'),
+                                  subtitle: Text(
+                                      '$_numberOfActiveLights device is activity'),
+                                  leading: const CircleAvatar(
+                                    child: Icon(Icons.light_mode_sharp),
+                                  ),
+                                );
+                              },
+                              body: Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
+                                child: Wrap(
+                                  spacing: 10.0,
+                                  runSpacing: 10.0,
+                                  children: lights.map((light) {
+                                    return SwitchWrapper(
+                                        text: light["name"],
+                                        onChanged: _switchChange(
+                                            light["id"], light["status"]),
+                                        value: light["status"]);
+                                  }).toList(),
+                                ),
+                              ),
+                              isExpanded: _isPanelLightExpanded,
+                            ),
+                            ExpansionPanel(
+                              headerBuilder:
+                                  (BuildContext context, bool isExpand) {
+                                return ListTile(
+                                  title: const Text('Fan'),
+                                  subtitle: Text(
+                                      '$_numberOfActiveFans device is activity'),
+                                  leading: const CircleAvatar(
+                                    child: Icon(Icons.wind_power),
+                                  ),
+                                );
+                              },
+                              body: Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
+                                child: Wrap(
+                                  spacing: 10.0,
+                                  runSpacing: 10.0,
+                                  children: fans.map((fan) {
+                                    return SwitchWrapper(
+                                        text: fan["name"],
+                                        onChanged: _switchChange(
+                                            fan["id"], fan["status"]),
+                                        value: fan["status"]);
+                                  }).toList(),
+                                ),
+                              ),
+                              isExpanded: _isPanelFanExpanded,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+          ],
+        ),
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: const RecordAudio(), // Button record
     );

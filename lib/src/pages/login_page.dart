@@ -52,12 +52,12 @@ class _LoginPageState extends State<LoginPage> {
             children: <Widget>[
               TextFormField(
                 decoration: const InputDecoration(
-                  labelText: 'Email',
+                  labelText: 'Username',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value!.isEmpty) {
-                    return 'Please enter your email';
+                    return 'Please enter your username';
                   }
                   return null;
                 },

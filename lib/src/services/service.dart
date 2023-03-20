@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -35,6 +36,7 @@ Future<int> login(String username, String password) async {
   );
 
   print("login ${response.statusCode}");
+
   return response.statusCode;
 }
 
@@ -45,11 +47,13 @@ Future<dynamic> getDevice() async {
     'Authorization': 'Bearer $accessToken',
     'Content-Type': 'application/json'
   });
+
   if (response.statusCode == 200) {
     final body = response.body;
     final data = jsonDecode(body);
     return data;
   } else {
+    print("get devices ${response.body}");
     return -1;
   }
 
@@ -66,6 +70,7 @@ Future<int> updateDevice(deviceId, value) async {
       body: jsonEncode(<String, bool>{'status': value}));
 
   print("update ${response.statusCode}");
+
   return response.statusCode;
 }
 
@@ -82,6 +87,22 @@ Future<int> addDevice(String name, String type) async {
   );
 
   print("create ${response.statusCode}");
+
   return response.statusCode;
 }
+
+// Send file audio to server
+Future<void> sendAudio (String audioPath) async {
+  var uri = Uri.parse("$url/recognize");
+  var request = http.MultipartRequest("POST", uri);
+
+  var multipartFile = await http.MultipartFile.fromPath("audio", audioPath);
+  request.files.add(multipartFile);
+
+  http.StreamedResponse response = await request.send();
+  response.stream.transform(utf8.decoder).listen((value) {
+    print(value);
+  });
+}
+
 

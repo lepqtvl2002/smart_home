@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
+import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
 // Request micro permission
@@ -29,6 +30,7 @@ class RecordAudio extends StatefulWidget {
 class _RecordAudioState extends State<RecordAudio> {
   final Record _record = Record();
   bool _isRecording = false;
+  String _audioPath = "";
 
   @override
   void initState() {
@@ -52,6 +54,7 @@ class _RecordAudioState extends State<RecordAudio> {
 
         setState(() {
           _isRecording = true;
+          _audioPath = audioPath;
         });
       } else {
         await requestMicPermission();
@@ -72,6 +75,7 @@ class _RecordAudioState extends State<RecordAudio> {
         setState(() {
           _isRecording = false;
         });
+        await sendAudio(_audioPath);
       }
     } catch (e) {
       if (kDebugMode) {
