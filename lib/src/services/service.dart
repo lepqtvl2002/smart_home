@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+
+import '../functions/alert/alert.dart';
 
 const apiKey = '51112130206065637c98f0e2371626fb';
 const lat = '16.0678';
@@ -35,8 +39,14 @@ Future<int> login(String username, String password) async {
         <String, String>{'username': username, 'password': password}),
   );
 
-  print("login ${response.statusCode}");
-
+  if (kDebugMode) {
+    print("login ${response.statusCode}");
+  }
+  if (response.statusCode == 200) {
+    final body = response.body;
+    final data = jsonDecode(body);
+    accessToken = data["access_token"];
+  }
   return response.statusCode;
 }
 
@@ -53,10 +63,11 @@ Future<dynamic> getDevice() async {
     final data = jsonDecode(body);
     return data;
   } else {
-    print("get devices ${response.body}");
+    if (kDebugMode) {
+      print("get devices ${response.statusCode}");
+    }
     return -1;
   }
-
 }
 
 // Update device
@@ -69,7 +80,9 @@ Future<int> updateDevice(deviceId, value) async {
       },
       body: jsonEncode(<String, bool>{'status': value}));
 
-  print("update ${response.statusCode}");
+  if (kDebugMode) {
+    print("update ${response.statusCode}");
+  }
 
   return response.statusCode;
 }
@@ -86,23 +99,23 @@ Future<int> addDevice(String name, String type) async {
     body: jsonEncode(<String, String>{'name': name, 'type': type}),
   );
 
-  print("create ${response.statusCode}");
+  if (kDebugMode) {
+    print("create ${response.statusCode}");
+  }
 
   return response.statusCode;
 }
 
 // Send file audio to server
-Future<void> sendAudio (String audioPath) async {
-  var uri = Uri.parse("$url/recognize");
-  var request = http.MultipartRequest("POST", uri);
+Future<String> sendAudio(String audioPath) async {
+  final uri = Uri.parse("$url/recognize");
+  final request = http.MultipartRequest("POST", uri);
 
-  var multipartFile = await http.MultipartFile.fromPath("audio", audioPath);
+  final multipartFile = await http.MultipartFile.fromPath("audio", audioPath);
   request.files.add(multipartFile);
-
+  String result = "";
   http.StreamedResponse response = await request.send();
-  response.stream.transform(utf8.decoder).listen((value) {
-    print(value);
-  });
+  final e = await response.stream.transform(utf8.decoder).toList();
+  result = e[0];
+  return result;
 }
-
-

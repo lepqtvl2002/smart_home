@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:smart_home_pbl5/src/services/service.dart';
 
 // Button micro while recording
 class ZoomInOutButton extends StatefulWidget {
@@ -120,94 +119,6 @@ class SwitchWrapper extends StatelessWidget {
   }
 }
 
-// Form add device
-class FormAddDevice extends StatefulWidget {
-  const FormAddDevice({super.key});
-
-  @override
-  _FormAddDeviceState createState() => _FormAddDeviceState();
-}
-
-class _FormAddDeviceState extends State<FormAddDevice> {
-  final _formKey = GlobalKey<FormState>();
-  late String? _name;
-  static const List<String> _listTypeDevices = ['Light', 'Fan', 'Door'];
-  String _selectedTypeDevice = _listTypeDevices[0];
-
-  @override
-  Widget build(BuildContext context) {
-    return Form(
-      key: _formKey,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DropdownButton<String>(
-            value: _selectedTypeDevice,
-            items: _listTypeDevices.map((deviceType) {
-              return DropdownMenuItem<String>(
-                value: deviceType,
-                child: Text(deviceType),
-              );
-            }).toList(),
-            onChanged: (selectedTypeDevice) {
-              setState(() {
-                _selectedTypeDevice = selectedTypeDevice!;
-              });
-            },
-          ),
-          TextFormField(
-            decoration: const InputDecoration(labelText: "Device's name"),
-            validator: (value) {
-              if (value!.isEmpty) {
-                return "Please type device's name";
-              }
-              return null;
-            },
-            onSaved: (value) {
-              setState(() {
-                _name = value!;
-              });
-            },
-          ),
-          const SizedBox(height: 16.0),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: <Widget>[
-              ElevatedButton(
-                child: const Text('Cancel'),
-                onPressed: () {},
-              ),
-              ElevatedButton(
-                child: const Text('Add'),
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState?.save();
-                    // Lưu dữ liệu vào cơ sở dữ liệu hoặc xử lý dữ liệu tại đây
-                    print(_name);
-                    print(_selectedTypeDevice);
-                    var _selectedTypeId =
-                        _listTypeDevices.indexOf(_selectedTypeDevice) + 1;
-                    print(_selectedTypeId);
-                    final msg =
-                        await addDevice(_name!, _selectedTypeId.toString());
-                    print(msg);
-                    if (msg == "OK") {
-                      print("Success");
-                    } else {
-                      print("Failed!");
-                    }
-                  }
-                },
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-}
-
 // Card custom
 class CustomCard extends Card {
   @override
@@ -232,6 +143,32 @@ class CustomCard extends Card {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: child,
+      ),
+    );
+  }
+}
+
+// List devices dropdown
+class ListDevices extends StatelessWidget {
+  final List<dynamic> devices;
+  final Future<Set<void>> Function(bool) Function(dynamic, dynamic) onChange;
+
+  const ListDevices({Key? key, required this.devices, required this.onChange})
+      : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(36, 0, 8, 10),
+      child: Wrap(
+        spacing: 10.0,
+        runSpacing: 10.0,
+        children: devices.map((device) {
+          return SwitchWrapper(
+              text: device["name"],
+              onChanged: onChange(device["id"], device["status"]),
+              value: device["status"]);
+        }).toList(),
       ),
     );
   }

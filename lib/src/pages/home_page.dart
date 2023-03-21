@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:smart_home_pbl5/src/functions/navigate/navigate.dart';
 
 import 'package:smart_home_pbl5/src/functions/records/record.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
@@ -8,6 +9,9 @@ import 'package:smart_home_pbl5/src/session/session.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
 import '../functions/alert/alert.dart';
+import '../widgets/drawer.dart';
+import '../widgets/form.dart';
+import '../widgets/loading.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
@@ -150,19 +154,19 @@ class _MyHomePageState extends State<MyHomePage> {
         if (_count % 1000 == 0) {
           showAlert(
               const Text("Failed while loading devices!"),
-              const Text("Have trouble while loading devices! Please login again"),
+              const Text(
+                  "Have trouble while loading devices! Please login again"),
               [
                 ElevatedButton(
                     onPressed: () => {
-                      Navigator.pushNamedAndRemoveUntil(
-                          context, "/login", (route) => false)
-                    },
+                          Navigator.pushNamedAndRemoveUntil(
+                              context, "/login", (route) => false)
+                        },
                     child: const Text("Logout"))
               ],
               context);
         }
       }
-
     }
   }
 
@@ -175,7 +179,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _navigatePage(context) async {
     bool isLoggedIn = await checkSession();
     if (!isLoggedIn) {
-      Navigator.pushReplacementNamed(context, '/login');
+      navigatePage(context, '/login');
     }
   }
 
@@ -186,7 +190,7 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context) {
         return const AlertDialog(
           title: Text('Add new device'),
-          content: FormAddDevice(),
+          content: AddDeviceForm(),
         );
       },
     );
@@ -215,44 +219,8 @@ class _MyHomePageState extends State<MyHomePage> {
           },
         ),
       ),
-      drawer: Drawer(
-        child: ListView(
-          children: <Widget>[
-            UserAccountsDrawerHeader(
-              accountName: Text(_username),
-              currentAccountPicture: CircleAvatar(
-                child: Text(
-                  _username[0].toUpperCase(),
-                  style: const TextStyle(
-                    fontSize: 50,
-                  ),
-                ),
-              ),
-              accountEmail: null,
-            ),
-            ListTile(
-              title: const Text('Home'),
-              onTap: () {
-                // Handle home button tap
-              },
-            ),
-            ListTile(
-              title: const Text('Settings'),
-              onTap: () {
-                // Handle settings button tap
-              },
-            ),
-            ListTile(
-              title: const Text('Log out'),
-              onTap: () {
-                // Clear session
-                clearSession();
-                clearToken();
-              },
-            ),
-          ],
-        ),
-        // Drawer content goes here
+      drawer: SidebarDrawer(
+        username: _username,
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -272,14 +240,10 @@ class _MyHomePageState extends State<MyHomePage> {
                       onPressed: () => {
                         showAlert(
                             const Text("Temperature"),
-                            Text("$_temperature"),
+                            Text("$_temperature℃"),
                             [
                               ElevatedButton(
-                                  onPressed: () => {
-                                        () {
-                                          Navigator.of(context).pop();
-                                        }
-                                      },
+                                  onPressed: () => {closeModal(context)},
                                   child: const Text("OK"))
                             ],
                             context)
@@ -291,52 +255,54 @@ class _MyHomePageState extends State<MyHomePage> {
                           Icons.water_drop_outlined,
                           size: 50,
                         ),
-                        onPressed: () => {}),
+                        onPressed: () => {
+                          showAlert(
+                              const Text("Humidity"),
+                              Text("$_humidity%"),
+                              [
+                                ElevatedButton(
+                                    onPressed: () => {closeModal(context)},
+                                    child: const Text("OK"))
+                              ],
+                              context)
+                        }),
                     MyButton(
                         text: const Text("Activity"),
                         icon: const Icon(
                           Icons.visibility_outlined,
                           size: 50,
                         ),
-                        onPressed: () => {}),
+                        onPressed: () => {
+                          showAlert(
+                              const Text("Number of active devices"),
+                              Text("$_numberOfActiveDevice devices"),
+                              [
+                                ElevatedButton(
+                                    onPressed: () => {closeModal(context)},
+                                    child: const Text("OK"))
+                              ],
+                              context)
+                        }),
                   ]),
                   TableRow(children: <Widget>[
                     Center(
                       child: isLoadingInformation
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                backgroundColor: Colors.transparent,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.red),
-                              ),
-                            )
+                          ? const CircularLoading()
                           : Text("$_temperature℃",
                               style:
                                   Theme.of(context).textTheme.headlineMedium),
                     ),
                     Center(
                       child: isLoadingInformation
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                backgroundColor: Colors.transparent,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.red),
-                              ),
-                            )
-                          : Text("$_humidity℃",
+                          ? const CircularLoading()
+                          : Text("$_humidity%",
                               style:
                                   Theme.of(context).textTheme.headlineMedium),
                     ),
                     Center(
                       child: isLoadingDevices
-                          ? const Center(
-                              child: CircularProgressIndicator(
-                                backgroundColor: Colors.transparent,
-                                valueColor:
-                                    AlwaysStoppedAnimation<Color>(Colors.red),
-                              ),
-                            )
-                          : Text("$_numberOfActiveDevice℃",
+                          ? const CircularLoading()
+                          : Text("$_numberOfActiveDevice",
                               style:
                                   Theme.of(context).textTheme.headlineMedium),
                     ),
@@ -344,27 +310,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 ],
               ),
             ),
-            isLoadingDevices
-                ? const Center(
-                    child: Text("Loading..."),
-                  )
-                : Wrap(
-                    children: <Widget>[
-                      Row(
-                        // Button add device
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          ElevatedButton.icon(
-                            onPressed: _openModalAddDevice,
-                            icon: const Text("Add new device"),
-                            label: const Icon(Icons.add),
-                          ),
-                          const SizedBox(
-                            width: 10,
-                          )
-                        ],
-                      ),
-                      CustomCard(
+            Wrap(
+              children: <Widget>[
+                Row(
+                  // Button add device
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: _openModalAddDevice,
+                      icon: const Text("Add new device"),
+                      label: const Icon(Icons.add),
+                    ),
+                    const SizedBox(
+                      width: 10,
+                    )
+                  ],
+                ),
+                isLoadingDevices
+                    ? const Center(
+                        child: Text("Loading..."),
+                      )
+                    : CustomCard(
                         // Expansion panel list contain switch control device
                         child: ExpansionPanelList(
                           expansionCallback: (int index, bool isExpanded) {
@@ -392,20 +358,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 );
                               },
-                              body: Container(
-                                padding:
-                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
-                                child: Wrap(
-                                  spacing: 10.0,
-                                  runSpacing: 10.0,
-                                  children: doors.map((device) {
-                                    return SwitchWrapper(
-                                        text: device["name"],
-                                        onChanged: _switchChange(
-                                            device["id"], device["status"]),
-                                        value: device["status"]);
-                                  }).toList(),
-                                ),
+                              body: ListDevices(
+                                devices: doors,
+                                onChange: _switchChange,
                               ),
                               isExpanded: _isPanelDoorExpanded,
                             ),
@@ -421,20 +376,9 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 );
                               },
-                              body: Container(
-                                padding:
-                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
-                                child: Wrap(
-                                  spacing: 10.0,
-                                  runSpacing: 10.0,
-                                  children: lights.map((light) {
-                                    return SwitchWrapper(
-                                        text: light["name"],
-                                        onChanged: _switchChange(
-                                            light["id"], light["status"]),
-                                        value: light["status"]);
-                                  }).toList(),
-                                ),
+                              body: ListDevices(
+                                devices: lights,
+                                onChange: _switchChange,
                               ),
                               isExpanded: _isPanelLightExpanded,
                             ),
@@ -450,28 +394,17 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 );
                               },
-                              body: Container(
-                                padding:
-                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
-                                child: Wrap(
-                                  spacing: 10.0,
-                                  runSpacing: 10.0,
-                                  children: fans.map((fan) {
-                                    return SwitchWrapper(
-                                        text: fan["name"],
-                                        onChanged: _switchChange(
-                                            fan["id"], fan["status"]),
-                                        value: fan["status"]);
-                                  }).toList(),
-                                ),
+                              body: ListDevices(
+                                devices: fans,
+                                onChange: _switchChange,
                               ),
                               isExpanded: _isPanelFanExpanded,
                             ),
                           ],
                         ),
                       ),
-                    ],
-                  )
+              ],
+            )
           ],
         ),
       ),

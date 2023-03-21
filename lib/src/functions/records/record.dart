@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
+import 'package:smart_home_pbl5/src/functions/alert/alert.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
@@ -75,7 +76,13 @@ class _RecordAudioState extends State<RecordAudio> {
         setState(() {
           _isRecording = false;
         });
-        await sendAudio(_audioPath);
+        String result = await sendAudio(_audioPath);
+        print(result);
+        if (result.isNotEmpty) {
+          showAlert(const Text("Result"), Text(result), [], context);
+          if (mounted) {
+          }
+        }
       }
     } catch (e) {
       if (kDebugMode) {
