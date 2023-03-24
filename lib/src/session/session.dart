@@ -6,10 +6,20 @@ Future<void> saveUserLogin(String userLogin) async {
   await prefs.setString('userLogin', userLogin);
 }
 
+Future<void> saveAccessToken(String accessToken) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('accessToken', accessToken);
+}
+
 // Get session
 Future<String> getUserLogin() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   return prefs.getString('userLogin') ?? '';
+}
+
+Future<String> getAccessToken() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  return prefs.getString('accessToken') ?? '';
 }
 
 // Check session

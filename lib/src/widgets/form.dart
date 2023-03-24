@@ -10,7 +10,8 @@ typedef FormToLogin = _LoginFormState;
 
 // Add device form
 class AddDeviceForm extends StatefulWidget {
-  const AddDeviceForm({super.key});
+  final List<String> listDeviceType;
+  const AddDeviceForm({super.key, required this.listDeviceType});
 
   @override
   FormToAdd createState() => _AddDeviceFormState();

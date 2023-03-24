@@ -43,7 +43,6 @@ class SidebarDrawer extends StatelessWidget {
             onTap: () {
               // Clear session
               clearSession();
-              clearToken();
             },
           ),
         ],

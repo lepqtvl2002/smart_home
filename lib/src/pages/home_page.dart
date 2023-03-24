@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:smart_home_pbl5/src/functions/navigate/navigate.dart';
 
 import 'package:smart_home_pbl5/src/functions/records/record.dart';
@@ -24,11 +25,15 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   late String _username = "username";
+  late dynamic deviceTypes;
   List<dynamic> devices = [];
   List<dynamic> lights = [];
   List<dynamic> fans = [];
   List<dynamic> doors = [];
+  List<dynamic> tems = [];
+  List<dynamic> others = [];
   int _numberOfActiveDevice = 0;
   int _numberOfActiveDoors = 0;
   int _numberOfActiveLights = 0;
@@ -41,17 +46,20 @@ class _MyHomePageState extends State<MyHomePage> {
   late var timer;
   bool isLoadingDevices = true;
   bool isLoadingInformation = true;
+  bool isLoading = false;
   int _count = 1;
+
+  Map<int, bool> isUpdatingMap = {};
 
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _getDeviceTypes();
     if (mounted) {
       timer = Timer.periodic(const Duration(seconds: 2), (Timer t) {
         // Call your function here
         _getDevices();
-        _getInformation();
         _countActiveDevices();
         _navigatePage(context);
       });
@@ -64,26 +72,50 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
+  //
+  void _setUpIsLoadingMap() {
+    for (var element in devices) {
+      setState(() {
+        isUpdatingMap[element["id"]] = false;
+      });
+    }
+  }
+
+  // Get device types
+  void _getDeviceTypes() async {
+    final data = await getDeviceTypes();
+    if (data == -1) {
+      print("Error");
+    } else {
+      if (mounted) {
+        setState(() {
+          deviceTypes = data["data"];
+        });
+      }
+    }
+  }
+
   // Count active devices
   void _countActiveDevices() {
+    _setUpIsLoadingMap();
     int countDoor = 0;
     int countLight = 0;
     int countFan = 0;
     for (int i = 0; i < devices.length; i++) {
       final device = devices[i];
       if (device["status"]) {
-        switch (device["type"]) {
-          case "1":
-            countLight++;
-            break;
-          case "2":
-            countFan++;
-            break;
-          case "3":
-            countDoor++;
-            break;
-          default:
-            print("Type undefine?!");
+        if (device["type"] == deviceTypes["LED"].toString()) {
+          countLight++;
+        } else if (device["type"] == deviceTypes["FAN"].toString()) {
+          countFan++;
+        } else if (device["type"] == deviceTypes["DOOR"].toString()) {
+          countDoor++;
+        } else if (device["type"] == deviceTypes["TEM"].toString()) {
+          // Temperature
+        } else if (device["type"] == deviceTypes["OTHER"].toString()) {
+          // Other devices
+        } else {
+          // Undefine devices
         }
       }
     }
@@ -97,7 +129,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Divide type Light(1), Fan(2), Door(3)
+  // Divide type Light(1), Fan(2), Door(3), Temperature and Humidity(4)
   List<dynamic> filterDevice(String typeDevice) {
     List<dynamic> listDevice = [];
 
@@ -111,12 +143,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Get temperature, humidity
-  void _getInformation() async {
-    final data = await getTemperatureAndHumidity();
+  void _getTemperatureAndHumidity() {
+    double temperature = 0;
+    double humidity = 0;
+    for (var tem in tems) {
+      temperature += tem["data_value"]["tem"];
+      humidity += tem["data_value"]["hum"];
+    }
     if (mounted) {
       setState(() {
-        _temperature = (data['temp'] - 273.15).round();
-        _humidity = data['humidity'];
+        _temperature = temperature.toInt();
+        _humidity = humidity.toInt();
       });
       setState(() {
         isLoadingInformation = false;
@@ -134,24 +171,31 @@ class _MyHomePageState extends State<MyHomePage> {
           devices = data["data"];
         });
         setState(() {
-          lights = filterDevice("1");
+          lights = filterDevice(deviceTypes["LED"].toString());
         });
         setState(() {
-          fans = filterDevice("2");
+          fans = filterDevice(deviceTypes["FAN"].toString());
         });
         setState(() {
-          doors = filterDevice("3");
+          doors = filterDevice(deviceTypes["DOOR"].toString());
+        });
+        setState(() {
+          tems = filterDevice(deviceTypes["TEM"].toString());
+        });
+        setState(() {
+          others = filterDevice(deviceTypes["OTHER"].toString());
         });
         setState(() {
           isLoadingDevices = false;
         });
+        _getTemperatureAndHumidity();
       }
     } else {
       if (mounted) {
         setState(() {
           _count++;
         });
-        if (_count % 1000 == 0) {
+        if (_count % 10 == 0) {
           showAlert(
               const Text("Failed while loading devices!"),
               const Text(
@@ -170,11 +214,6 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  // Change status of device
-  Future<Set<void>> Function(bool value) _switchChange(deviceId, value) {
-    return (value) async => {await updateDevice(deviceId, value)};
-  }
-
   // Navigate page if have no session
   void _navigatePage(context) async {
     bool isLoggedIn = await checkSession();
@@ -190,7 +229,9 @@ class _MyHomePageState extends State<MyHomePage> {
       builder: (BuildContext context) {
         return const AlertDialog(
           title: Text('Add new device'),
-          content: AddDeviceForm(),
+          content: AddDeviceForm(
+            listDeviceType: [],
+          ),
         );
       },
     );
@@ -256,16 +297,16 @@ class _MyHomePageState extends State<MyHomePage> {
                           size: 50,
                         ),
                         onPressed: () => {
-                          showAlert(
-                              const Text("Humidity"),
-                              Text("$_humidity%"),
-                              [
-                                ElevatedButton(
-                                    onPressed: () => {closeModal(context)},
-                                    child: const Text("OK"))
-                              ],
-                              context)
-                        }),
+                              showAlert(
+                                  const Text("Humidity"),
+                                  Text("$_humidity%"),
+                                  [
+                                    ElevatedButton(
+                                        onPressed: () => {closeModal(context)},
+                                        child: const Text("OK"))
+                                  ],
+                                  context)
+                            }),
                     MyButton(
                         text: const Text("Activity"),
                         icon: const Icon(
@@ -273,16 +314,16 @@ class _MyHomePageState extends State<MyHomePage> {
                           size: 50,
                         ),
                         onPressed: () => {
-                          showAlert(
-                              const Text("Number of active devices"),
-                              Text("$_numberOfActiveDevice devices"),
-                              [
-                                ElevatedButton(
-                                    onPressed: () => {closeModal(context)},
-                                    child: const Text("OK"))
-                              ],
-                              context)
-                        }),
+                              showAlert(
+                                  const Text("Number of active devices"),
+                                  Text("$_numberOfActiveDevice devices"),
+                                  [
+                                    ElevatedButton(
+                                        onPressed: () => {closeModal(context)},
+                                        child: const Text("OK"))
+                                  ],
+                                  context)
+                            }),
                   ]),
                   TableRow(children: <Widget>[
                     Center(
@@ -356,11 +397,43 @@ class _MyHomePageState extends State<MyHomePage> {
                                   leading: const CircleAvatar(
                                     child: Icon(Icons.door_back_door_outlined),
                                   ),
+                                  onTap: () => {
+                                    setState(() {
+                                      _isPanelDoorExpanded =
+                                          !_isPanelDoorExpanded;
+                                    })
+                                  },
                                 );
                               },
-                              body: ListDevices(
-                                devices: doors,
-                                onChange: _switchChange,
+                              body: Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
+                                child: Wrap(
+                                  spacing: 10.0,
+                                  runSpacing: 10.0,
+                                  children: doors.map((device) {
+                                    return SwitchWrapper(
+                                      deviceId: device["id"],
+                                      isLoading: isUpdatingMap[device["id"]],
+                                      value: device["status"],
+                                      onChanged: (bool value) async {
+                                        if (mounted) {
+                                          setState(() {
+                                            isUpdatingMap[device["id"]] = true;
+                                            device["status"] = value;
+                                          });
+                                          await updateDevice(
+                                              device["id"], value);
+                                          setState(() {
+                                            isUpdatingMap[device["id"]] = false;
+                                          });
+                                        }
+                                      },
+                                      text: device["name"],
+                                      onTap: () {},
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                               isExpanded: _isPanelDoorExpanded,
                             ),
@@ -374,11 +447,43 @@ class _MyHomePageState extends State<MyHomePage> {
                                   leading: const CircleAvatar(
                                     child: Icon(Icons.light_mode_sharp),
                                   ),
+                                  onTap: () => {
+                                    setState(() {
+                                      _isPanelLightExpanded =
+                                          !_isPanelLightExpanded;
+                                    })
+                                  },
                                 );
                               },
-                              body: ListDevices(
-                                devices: lights,
-                                onChange: _switchChange,
+                              body: Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
+                                child: Wrap(
+                                  spacing: 10.0,
+                                  runSpacing: 10.0,
+                                  children: lights.map((device) {
+                                    return SwitchWrapper(
+                                      deviceId: device["id"],
+                                      isLoading: isUpdatingMap[device["id"]],
+                                      value: device["status"],
+                                      onChanged: (bool value) async {
+                                        if (mounted) {
+                                          setState(() {
+                                            isUpdatingMap[device["id"]] = true;
+                                            device["status"] = value;
+                                          });
+                                          await updateDevice(
+                                              device["id"], value);
+                                          setState(() {
+                                            isUpdatingMap[device["id"]] = false;
+                                          });
+                                        }
+                                      },
+                                      text: device["name"],
+                                      onTap: () {},
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                               isExpanded: _isPanelLightExpanded,
                             ),
@@ -392,11 +497,43 @@ class _MyHomePageState extends State<MyHomePage> {
                                   leading: const CircleAvatar(
                                     child: Icon(Icons.wind_power),
                                   ),
+                                  onTap: () => {
+                                    setState(() {
+                                      _isPanelFanExpanded =
+                                          !_isPanelFanExpanded;
+                                    })
+                                  },
                                 );
                               },
-                              body: ListDevices(
-                                devices: fans,
-                                onChange: _switchChange,
+                              body: Container(
+                                padding:
+                                    const EdgeInsets.fromLTRB(36, 0, 8, 10),
+                                child: Wrap(
+                                  spacing: 10.0,
+                                  runSpacing: 10.0,
+                                  children: fans.map((device) {
+                                    return SwitchWrapper(
+                                      deviceId: device["id"],
+                                      isLoading: isUpdatingMap[device["id"]],
+                                      value: device["status"],
+                                      onChanged: (bool value) async {
+                                        if (mounted) {
+                                          setState(() {
+                                            isUpdatingMap[device["id"]] = true;
+                                            device["status"] = value;
+                                          });
+                                          await updateDevice(
+                                              device["id"], value);
+                                          setState(() {
+                                            isUpdatingMap[device["id"]] = false;
+                                          });
+                                        }
+                                      },
+                                      text: device["name"],
+                                      onTap: () {},
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                               isExpanded: _isPanelFanExpanded,
                             ),
