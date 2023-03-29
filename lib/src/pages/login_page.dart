@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:smart_home_pbl5/src/functions/alert/alert.dart';
-import 'package:smart_home_pbl5/src/services/service.dart';
-import 'package:smart_home_pbl5/src/session/session.dart';
 import 'package:smart_home_pbl5/src/widgets/form.dart';
 
-import '../functions/navigate/navigate.dart';
+// Login page
+typedef LoginPageState = _LoginPageState;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
   @override
-  _LoginPageState createState() => _LoginPageState();
+  LoginPageState createState() => _LoginPageState();
 }
 
 class _LoginPageState extends State<LoginPage> {

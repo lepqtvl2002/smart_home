@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
-import 'package:smart_home_pbl5/src/functions/alert/alert.dart';
+import 'package:smart_home_pbl5/src/functions/notification/alert.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
@@ -21,11 +21,13 @@ Future<void> requestMicPermission() async {
 }
 
 // Record audio
+typedef RecordAudioState = _RecordAudioState;
+
 class RecordAudio extends StatefulWidget {
   const RecordAudio({super.key});
 
   @override
-  _RecordAudioState createState() => _RecordAudioState();
+  RecordAudioState createState() => _RecordAudioState();
 }
 
 class _RecordAudioState extends State<RecordAudio> {
@@ -77,10 +79,9 @@ class _RecordAudioState extends State<RecordAudio> {
           _isRecording = false;
         });
         String result = await sendAudio(_audioPath);
-        print(result);
         if (result.isNotEmpty) {
-          showAlert(const Text("Result"), Text(result), [], context);
           if (mounted) {
+            showAlert(const Text("Result"), Text(result), [], context);
           }
         }
       }

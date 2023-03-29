@@ -1,19 +1,20 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/widgets/loading.dart';
 
-import '../functions/alert/alert.dart';
+import '../functions/notification/alert.dart';
 import '../functions/navigate/navigate.dart';
 
 // Button micro while recording
+typedef ZoomButton = _ZoomInOutButtonState;
+
 class ZoomInOutButton extends StatefulWidget {
   final Widget child;
 
-  const ZoomInOutButton({required this.child});
+  const ZoomInOutButton({super.key, required this.child});
 
   @override
-  _ZoomInOutButtonState createState() => _ZoomInOutButtonState();
+  ZoomButton createState() => _ZoomInOutButtonState();
 }
 
 class _ZoomInOutButtonState extends State<ZoomInOutButton>
@@ -43,7 +44,7 @@ class _ZoomInOutButtonState extends State<ZoomInOutButton>
     return AnimatedBuilder(
       animation: _animationController,
       builder: (context, child) {
-        return Container(
+        return SizedBox(
           width: _animation.value,
           height: _animation.value,
           child: child,
@@ -93,10 +94,9 @@ class MyButton extends StatelessWidget {
 
 // Card custom
 class CustomCard extends Card {
-  @override
-  final Widget child;
+  final Widget childWidget;
 
-  const CustomCard({Key? key, required this.child}) : super(key: key);
+  const CustomCard({Key? key, required this.childWidget}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -114,45 +114,14 @@ class CustomCard extends Card {
       ),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: child,
+        child: childWidget,
       ),
     );
   }
 }
 
-// // List devices dropdown
-// class ListDevices extends StatelessWidget {
-//   final List<dynamic> devices;
-//   final Future<Set<void>> Function(bool) Function(dynamic, dynamic) onChange;
-//   final Future<Set<void>> Function() Function(dynamic, dynamic) onTap;
-//
-//   const ListDevices(
-//       {Key? key,
-//       required this.devices,
-//       required this.onTap,
-//       required this.onChange})
-//       : super(key: key);
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Container(
-//       padding: const EdgeInsets.fromLTRB(36, 0, 8, 10),
-//       child: Wrap(
-//         spacing: 10.0,
-//         runSpacing: 10.0,
-//         children: devices.map((device) {
-//           return SwitchWrapper(
-//               text: device["name"],
-//               onTap: onTap(device["id"], device["status"]),
-//               onChanged: onChange(device["id"], device["status"]),
-//               value: device["status"], stream: null,);
-//         }).toList(),
-//       ),
-//     );
-//   }
-// }
-
 // Wrapper title and switch
+typedef SwitchWrapperState = _SwitchWrapperState;
 
 class SwitchWrapper extends StatefulWidget {
   final String text;
@@ -172,7 +141,7 @@ class SwitchWrapper extends StatefulWidget {
       required this.deviceId});
 
   @override
-  _SwitchWrapperState createState() => _SwitchWrapperState();
+  SwitchWrapperState createState() => _SwitchWrapperState();
 }
 
 class _SwitchWrapperState extends State<SwitchWrapper> {
@@ -213,6 +182,7 @@ class _SwitchWrapperState extends State<SwitchWrapper> {
   }
 }
 
+// Menu
 enum ActionItem { remove }
 
 class PopupMenuAction extends StatefulWidget {

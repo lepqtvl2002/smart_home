@@ -5,19 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_home_pbl5/src/session/session.dart';
 
-// const apiKey = '51112130206065637c98f0e2371626fb';
-// const lat = '16.0678';
-// const lon = '108.2208';
-// const weatherUrl =
-//     'https://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey';
-//
-// // Get temperature and humidity
-// Future<dynamic> getTemperatureAndHumidity() async {
-//   final response = await http.get(Uri.parse(weatherUrl));
-//   final data = jsonDecode(response.body);
-//   return data['main'];
-// }
-
 //
 const url = "http://34.142.199.189/api";
 

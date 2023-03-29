@@ -8,8 +8,7 @@ class CircularLoading extends StatelessWidget {
     return const Center(
       child: CircularProgressIndicator(
         backgroundColor: Colors.transparent,
-        valueColor:
-        AlwaysStoppedAnimation<Color>(Colors.red),
+        valueColor: AlwaysStoppedAnimation<Color>(Colors.red),
       ),
     );
   }

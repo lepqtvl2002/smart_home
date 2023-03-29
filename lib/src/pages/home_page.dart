@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:smart_home_pbl5/src/functions/navigate/navigate.dart';
+import 'package:smart_home_pbl5/src/functions/notification/toast.dart';
 
 import 'package:smart_home_pbl5/src/functions/records/record.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/session/session.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
-import '../functions/alert/alert.dart';
+import '../functions/notification/alert.dart';
 import '../widgets/drawer.dart';
 import '../widgets/form.dart';
 import '../widgets/loading.dart';
@@ -43,7 +43,7 @@ class _MyHomePageState extends State<MyHomePage> {
   bool _isPanelDoorExpanded = false;
   bool _isPanelLightExpanded = false;
   bool _isPanelFanExpanded = false;
-  late var timer;
+  late dynamic timer;
   bool isLoadingDevices = true;
   bool isLoadingInformation = true;
   bool isLoading = false;
@@ -72,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-  //
+  // Set all map updating to false
   void _setUpIsLoadingMap() {
     for (var element in devices) {
       setState(() {
@@ -85,7 +85,9 @@ class _MyHomePageState extends State<MyHomePage> {
   void _getDeviceTypes() async {
     final data = await getDeviceTypes();
     if (data == -1) {
-      print("Error");
+      if (mounted) {
+        showError(context, "Something wrong!!!");
+      }
     } else {
       if (mounted) {
         setState(() {
@@ -195,21 +197,21 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _count++;
         });
-        if (_count % 10 == 0) {
-          showAlert(
-              const Text("Failed while loading devices!"),
-              const Text(
-                  "Have trouble while loading devices! Please login again"),
-              [
-                ElevatedButton(
-                    onPressed: () => {
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, "/login", (route) => false)
-                        },
-                    child: const Text("Logout"))
-              ],
-              context);
-        }
+        // if (_count % 10 == 0) {
+        //   showAlert(
+        //       const Text("Failed while loading devices!"),
+        //       const Text(
+        //           "Have trouble while loading devices! Please login again"),
+        //       [
+        //         ElevatedButton(
+        //             onPressed: () => {
+        //                   Navigator.pushNamedAndRemoveUntil(
+        //                       context, "/login", (route) => false)
+        //                 },
+        //             child: const Text("Logout"))
+        //       ],
+        //       context);
+        // }
       }
     }
   }
@@ -269,7 +271,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             CustomCard(
               // Show overview information (temperature, humidity, and number of active devices)
-              child: Table(
+              childWidget: Table(
                 children: [
                   TableRow(children: <Widget>[
                     MyButton(
@@ -373,7 +375,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       )
                     : CustomCard(
                         // Expansion panel list contain switch control device
-                        child: ExpansionPanelList(
+                        childWidget: ExpansionPanelList(
                           expansionCallback: (int index, bool isExpanded) {
                             setState(() {
                               if (index == 0) {

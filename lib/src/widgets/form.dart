@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../functions/alert/alert.dart';
+import '../functions/notification/alert.dart';
+import '../functions/notification/toast.dart';
 import '../functions/navigate/navigate.dart';
 import '../services/service.dart';
 import '../session/session.dart';
@@ -9,8 +10,11 @@ typedef FormToAdd = _AddDeviceFormState;
 typedef FormToLogin = _LoginFormState;
 
 // Add device form
+const List<String> _listTypeDevices = ['Light', 'Fan', 'Door'];
+
 class AddDeviceForm extends StatefulWidget {
   final List<String> listDeviceType;
+
   const AddDeviceForm({super.key, required this.listDeviceType});
 
   @override
@@ -20,7 +24,6 @@ class AddDeviceForm extends StatefulWidget {
 class _AddDeviceFormState extends State<AddDeviceForm> {
   final _formKey = GlobalKey<FormState>();
   late String? _name;
-  static const List<String> _listTypeDevices = ['Light', 'Fan', 'Door'];
   String _selectedTypeDevice = _listTypeDevices[0];
 
   @override
@@ -81,24 +84,12 @@ class _AddDeviceFormState extends State<AddDeviceForm> {
                     if (statusCode == success) {
                       if (mounted) {
                         closeModal(context);
-                        showAlert(
-                            const Text("Add device successful!!!"),
-                            Text(
-                                "Added 1 device \n\nType : $_selectedTypeDevice\nName : $_name"),
-                            [],
-                            context);
+                        showSuccess(context, "Successful!!!");
                       }
                     } else {
                       if (mounted) {
-                        showAlert(
-                            const Text("Add device failed"),
-                            const Text("Can't add device. Please try again."),
-                            <Widget>[
-                              ElevatedButton(
-                                  onPressed: () => {closeModal(context)},
-                                  child: const Text("OK"))
-                            ],
-                            context);
+                        showError(context, "Add device failed",
+                            "Can't add device. Please try again.");
                       }
                     }
                   }
@@ -134,7 +125,9 @@ class _LoginFormState extends State<LoginForm> {
 
       if (statusCode == 200) {
         saveUserLogin(_username);
-        navigatePage(context, "/");
+        if (mounted) {
+          navigatePage(context, "/");
+        }
       } else {
         if (mounted) {
           showAlert(
@@ -143,8 +136,8 @@ class _LoginFormState extends State<LoginForm> {
                   "The username, or password you entered is incorrect. Please try again."),
               [],
               context);
+          // showError(context, "Login failed", "", const Duration(seconds: 5),);
         }
-        print("Login Failed!");
       }
     }
   }
