@@ -53,11 +53,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<int, bool> isUpdatingMap = {};
 
   @override
-  Future<void> initState() async {
+  void initState() {
     super.initState();
-    await initializeNotification();
-    await _loadUser();
-    await _getDeviceTypes();
+    initializeNotification();
+    _loadUser();
+    _getDeviceTypes();
     if (mounted) {
       timer = Timer.periodic(const Duration(seconds: 2), (Timer t) {
         // Call your function here
@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Get device types
-  Future<void> _getDeviceTypes() async {
+  void _getDeviceTypes() async {
     final data = await getDeviceTypes();
     if (data == -1) {
       if (mounted) {
@@ -221,7 +221,7 @@ class _MyHomePageState extends State<MyHomePage> {
   // Navigate page if have no session
   void _navigatePage(context) async {
     bool isLoggedIn = await checkSession();
-    if (!isLoggedIn) {
+    if (isLoggedIn == false) {
       navigatePage(context, '/login');
     }
   }
@@ -242,7 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Load username
-  Future<void> _loadUser() async {
+  void _loadUser() async {
     String username = await getUserLogin();
     if (mounted) {
       setState(() {

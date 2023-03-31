@@ -9,7 +9,7 @@ Future<void> requestNotificationPermission() async {
       ?.requestPermission();
 }
 
-Future<void> initializeNotification() async {
+void initializeNotification() async {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 

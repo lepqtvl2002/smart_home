@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:smart_home_pbl5/src/functions/notification/notification.dart';
 
 import '../functions/notification/alert.dart';
 import '../functions/notification/toast.dart';
 import '../functions/navigate/navigate.dart';
+import '../functions/vibrate/vibrate.dart';
 import '../services/service.dart';
 import '../session/session.dart';
 
@@ -137,7 +140,15 @@ class _LoginFormState extends State<LoginForm> {
                   "The username, or password you entered is incorrect. Please try again."),
               [],
               context);
+          Timer rungvcl = vibrationTimer(const Duration(seconds: 2));
+          Future.delayed(const Duration(seconds: 10), () {
+            // Here you can write your code
+            debugPrint("Het rung :D");
+            rungvcl.cancel();
+          });
+
           showWarningNotification(title: "test2", description: "login falied");
+          // await playSound();
         }
       }
     }
