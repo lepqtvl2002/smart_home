@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../services/service.dart';
 import '../session/session.dart';
 
 // Sidebar drawer

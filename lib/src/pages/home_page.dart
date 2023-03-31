@@ -10,6 +10,7 @@ import 'package:smart_home_pbl5/src/session/session.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
 
 import '../functions/notification/alert.dart';
+import '../functions/notification/notification.dart';
 import '../widgets/drawer.dart';
 import '../widgets/form.dart';
 import '../widgets/loading.dart';
@@ -52,10 +53,11 @@ class _MyHomePageState extends State<MyHomePage> {
   Map<int, bool> isUpdatingMap = {};
 
   @override
-  void initState() {
+  Future<void> initState() async {
     super.initState();
-    _loadUser();
-    _getDeviceTypes();
+    await initializeNotification();
+    await _loadUser();
+    await _getDeviceTypes();
     if (mounted) {
       timer = Timer.periodic(const Duration(seconds: 2), (Timer t) {
         // Call your function here
@@ -82,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Get device types
-  void _getDeviceTypes() async {
+  Future<void> _getDeviceTypes() async {
     final data = await getDeviceTypes();
     if (data == -1) {
       if (mounted) {
@@ -197,21 +199,21 @@ class _MyHomePageState extends State<MyHomePage> {
         setState(() {
           _count++;
         });
-        // if (_count % 10 == 0) {
-        //   showAlert(
-        //       const Text("Failed while loading devices!"),
-        //       const Text(
-        //           "Have trouble while loading devices! Please login again"),
-        //       [
-        //         ElevatedButton(
-        //             onPressed: () => {
-        //                   Navigator.pushNamedAndRemoveUntil(
-        //                       context, "/login", (route) => false)
-        //                 },
-        //             child: const Text("Logout"))
-        //       ],
-        //       context);
-        // }
+        if (_count % 10 == 0) {
+          showAlert(
+              const Text("Failed while loading devices!"),
+              const Text(
+                  "Have trouble while loading devices! Please login again"),
+              [
+                ElevatedButton(
+                    onPressed: () => {
+                          Navigator.pushNamedAndRemoveUntil(
+                              context, "/login", (route) => false)
+                        },
+                    child: const Text("Logout"))
+              ],
+              context);
+        }
       }
     }
   }
@@ -240,7 +242,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   // Load username
-  void _loadUser() async {
+  Future<void> _loadUser() async {
     String username = await getUserLogin();
     if (mounted) {
       setState(() {
@@ -318,7 +320,10 @@ class _MyHomePageState extends State<MyHomePage> {
                         onPressed: () => {
                               showAlert(
                                   const Text("Number of active devices"),
-                                  Text("$_numberOfActiveDevice devices"),
+                                  Text("$_numberOfActiveDevice devices\n"
+                                      "$_numberOfActiveDoors devices\n"
+                                      "$_numberOfActiveLights devices\n"
+                                      "$_numberOfActiveFans devices"),
                                   [
                                     ElevatedButton(
                                         onPressed: () => {closeModal(context)},
