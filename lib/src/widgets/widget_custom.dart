@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_home_pbl5/src/functions/notification/toast.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/widgets/loading.dart';
 
@@ -137,7 +138,7 @@ class SwitchWrapper extends StatefulWidget {
       required this.onTap,
       required this.onChanged,
       required this.value,
-      this.isLoading,
+      required this.isLoading,
       required this.deviceId});
 
   @override
@@ -167,7 +168,7 @@ class _SwitchWrapperState extends State<SwitchWrapper> {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          (widget.isLoading!)
+          (widget.isLoading == null ? false : widget.isLoading!)
               ? const CircularLoading()
               : PopupMenuAction(
                   deviceId: widget.deviceId,
@@ -231,6 +232,8 @@ class _PopupMenuActionState extends State<PopupMenuAction> {
                                   if (statusCode == 200) {
                                     if (mounted) {
                                       closeModal(context);
+                                      showSuccess(
+                                          context, "Delete successful!!!");
                                     }
                                   } else {
                                     if (mounted) {

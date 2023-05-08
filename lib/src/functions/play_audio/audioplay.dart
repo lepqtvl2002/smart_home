@@ -2,10 +2,9 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 
-Future<void> playSound() async {
+Future<void> playSound(String url) async {
   AudioPlayer audioPlayer = AudioPlayer();
   late Source audioUrl;
-  audioUrl = UrlSource(
-      'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3');
+  audioUrl = UrlSource(url);
   await audioPlayer.play(audioUrl);
 }

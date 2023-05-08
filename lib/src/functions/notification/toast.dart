@@ -32,6 +32,7 @@ void showSuccess(BuildContext context, String title,
     title: title,
     description: description,
     autoCloseDuration: duration,
+    backgroundColor: Colors.green.shade500,
   );
 }
 

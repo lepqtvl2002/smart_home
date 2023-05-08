@@ -5,18 +5,25 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:smart_home_pbl5/src/functions/notification/alert.dart';
+import 'package:smart_home_pbl5/src/functions/play_audio/audioplay.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
+
+// Request storage permission
+Future<bool> requestStoragePermission() async {
+  var status = await Permission.storage.request();
+  return status.isGranted;
+}
 
 // Request micro permission
 Future<void> requestMicPermission() async {
   final status = await Permission.microphone.request();
   if (status == PermissionStatus.granted) {
-    // Quyền truy cập vào microphone được cấp.
+// Quyền truy cập vào microphone được cấp.
   } else if (status == PermissionStatus.denied) {
-    // Quyền truy cập vào microphone bị từ chối.
+// Quyền truy cập vào microphone bị từ chối.
   } else if (status == PermissionStatus.permanentlyDenied) {
-    // Quyền truy cập vào microphone bị từ chối vĩnh viễn, cần yêu cầu lại từ người dùng trong cài đặt hệ thống.
+// Quyền truy cập vào microphone bị từ chối vĩnh viễn, cần yêu cầu lại từ người dùng trong cài đặt hệ thống.
   }
 }
 
@@ -40,7 +47,7 @@ class _RecordAudioState extends State<RecordAudio> {
     super.initState();
   }
 
-  // Start recording
+// Start recording
   Future<void> _startRecording() async {
     try {
       if (await _record.hasPermission()) {
@@ -50,9 +57,9 @@ class _RecordAudioState extends State<RecordAudio> {
 
         await _record.start(
           path: audioPath,
-          encoder: AudioEncoder.AAC,
-          bitRate: 192000,
-          samplingRate: 44100,
+          // encoder: AudioEncoder.AAC,
+          // bitRate: 192000,
+          // samplingRate: 44100,
         );
 
         setState(() {
@@ -70,7 +77,7 @@ class _RecordAudioState extends State<RecordAudio> {
     }
   }
 
-  // Stop recording
+// Stop recording
   Future<void> _stopRecording() async {
     try {
       if (_isRecording) {
@@ -78,7 +85,8 @@ class _RecordAudioState extends State<RecordAudio> {
         setState(() {
           _isRecording = false;
         });
-        String result = await sendAudio(_audioPath);
+
+        final result = await sendAudio(_audioPath);
         if (result.isNotEmpty) {
           if (mounted) {
             showAlert(const Text("Result"), Text(result), [], context);

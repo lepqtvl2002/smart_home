@@ -48,7 +48,6 @@ class _MyHomePageState extends State<MyHomePage> {
   bool isLoadingDevices = true;
   bool isLoadingInformation = true;
   bool isLoading = false;
-  int _count = 1;
 
   Map<int, bool> isUpdatingMap = {};
 
@@ -196,24 +195,20 @@ class _MyHomePageState extends State<MyHomePage> {
       }
     } else {
       if (mounted) {
-        setState(() {
-          _count++;
-        });
-        if (_count % 10 == 0) {
-          showAlert(
-              const Text("Failed while loading devices!"),
-              const Text(
-                  "Have trouble while loading devices! Please login again"),
-              [
-                ElevatedButton(
-                    onPressed: () => {
-                          Navigator.pushNamedAndRemoveUntil(
-                              context, "/login", (route) => false)
-                        },
-                    child: const Text("Logout"))
-              ],
-              context);
-        }
+        showAlert(
+            const Text("Failed while loading devices!"),
+            const Text(
+                "Have trouble while loading devices! Please login again"),
+            [
+              ElevatedButton(
+                  onPressed: () => {
+                        Navigator.pushNamedAndRemoveUntil(
+                            context, "/login", (route) => false)
+                      },
+                  child: const Text("Logout"))
+            ],
+            context);
+        clearSession();
       }
     }
   }
@@ -321,9 +316,9 @@ class _MyHomePageState extends State<MyHomePage> {
                               showAlert(
                                   const Text("Number of active devices"),
                                   Text("$_numberOfActiveDevice devices\n"
-                                      "$_numberOfActiveDoors devices\n"
-                                      "$_numberOfActiveLights devices\n"
-                                      "$_numberOfActiveFans devices"),
+                                      "$_numberOfActiveDoors doors\n"
+                                      "$_numberOfActiveLights lights\n"
+                                      "$_numberOfActiveFans fans"),
                                   [
                                     ElevatedButton(
                                         onPressed: () => {closeModal(context)},

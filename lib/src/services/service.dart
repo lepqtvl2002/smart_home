@@ -1,9 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:smart_home_pbl5/src/session/session.dart';
+
+import '../functions/play_audio/audioplay.dart';
 
 //
 const url = "http://34.142.199.189/api";
@@ -131,13 +135,56 @@ Future<int> deleteDevice(int idDevice) async {
 // Send file audio to server
 Future<String> sendAudio(String audioPath) async {
   final uri = Uri.parse("$url/recognize");
+  final accessToken = await getAccessToken();
   final request = http.MultipartRequest("POST", uri);
 
-  final multipartFile = await http.MultipartFile.fromPath("audio", audioPath);
-  request.files.add(multipartFile);
-  String result = "";
-  http.StreamedResponse response = await request.send();
-  final e = await response.stream.transform(utf8.decoder).toList();
-  result = e[0];
-  return result;
+  request.headers['Authorization'] = 'Bearer $accessToken';
+  request.files.add(await http.MultipartFile.fromPath('sound', audioPath));
+
+  try {
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      final responseStream =
+          await response.stream.transform(utf8.decoder).toList();
+      final result = responseStream.join();
+      return result;
+    } else {
+      return 'Request failed with status code: ${response.statusCode}';
+    }
+  } catch (e) {
+    throw Exception('Request failed: $e');
+  }
+}
+
+Future<String> sendAudioFile(String audioFilePath) async {
+  final uri = Uri.parse("$url/recognize");
+  final accessToken = await getAccessToken();
+  final file = File(audioFilePath);
+  final headers = {
+    HttpHeaders.authorizationHeader: 'Bearer $accessToken',
+    HttpHeaders.contentTypeHeader: 'multipart/form-data',
+    // change to your audio type
+  };
+
+  // create multipart request
+  var request = http.MultipartRequest('POST', uri);
+  request.headers.addAll(headers);
+  // add file to request
+  var audioFile = await http.MultipartFile.fromPath('sound', file.path);
+  request.files.add(audioFile);
+
+  print(audioFilePath);
+
+  try {
+    // send request and get response
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      var responseJson = await utf8.decodeStream(response.stream);
+      return responseJson;
+    } else {
+      return 'Failed to send audio: ${response.statusCode}';
+    }
+  } catch (error) {
+    return 'Failed to send audio: ${error.toString()}';
+  }
 }
