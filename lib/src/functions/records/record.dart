@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:smart_home_pbl5/src/functions/notification/alert.dart';
+import 'package:smart_home_pbl5/src/functions/notification/toast.dart';
 import 'package:smart_home_pbl5/src/functions/play_audio/audioplay.dart';
 import 'package:smart_home_pbl5/src/services/service.dart';
 import 'package:smart_home_pbl5/src/widgets/widget_custom.dart';
@@ -87,9 +89,13 @@ class _RecordAudioState extends State<RecordAudio> {
         });
 
         final result = await sendAudio(_audioPath);
-        if (result.isNotEmpty) {
+        final body = jsonDecode(result);
+        if (true) {
           if (mounted) {
-            showAlert(const Text("Result"), Text(result), [], context);
+            if (body["device"] == null) {
+              showError(context, "Can't recognize voice");
+            }
+            showSuccess(context, "${body["data"]} success!");
           }
         }
       }

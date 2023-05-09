@@ -10,7 +10,7 @@ import 'package:smart_home_pbl5/src/session/session.dart';
 import '../functions/play_audio/audioplay.dart';
 
 //
-const url = "http://34.142.199.189/api";
+const url = "http://34.142.180.156/api";
 
 // Login
 Future<int> login(String username, String password) async {
@@ -41,9 +41,9 @@ Future<dynamic> getDevice() async {
     'Authorization': 'Bearer $accessToken',
     'Content-Type': 'application/json'
   });
-
   if (response.statusCode == 200) {
-    final body = response.body;
+
+    final body = utf8.decode(response.bodyBytes);
     final data = jsonDecode(body);
     return data;
   } else {
@@ -133,7 +133,7 @@ Future<int> deleteDevice(int idDevice) async {
 }
 
 // Send file audio to server
-Future<String> sendAudio(String audioPath) async {
+Future<dynamic> sendAudio(String audioPath) async {
   final uri = Uri.parse("$url/recognize");
   final accessToken = await getAccessToken();
   final request = http.MultipartRequest("POST", uri);
@@ -144,8 +144,8 @@ Future<String> sendAudio(String audioPath) async {
   try {
     final response = await request.send();
     if (response.statusCode == 200) {
-      final responseStream =
-          await response.stream.transform(utf8.decoder).toList();
+      final responseStream = await
+          response.stream.transform(utf8.decoder).toList();
       final result = responseStream.join();
       return result;
     } else {
@@ -156,35 +156,3 @@ Future<String> sendAudio(String audioPath) async {
   }
 }
 
-Future<String> sendAudioFile(String audioFilePath) async {
-  final uri = Uri.parse("$url/recognize");
-  final accessToken = await getAccessToken();
-  final file = File(audioFilePath);
-  final headers = {
-    HttpHeaders.authorizationHeader: 'Bearer $accessToken',
-    HttpHeaders.contentTypeHeader: 'multipart/form-data',
-    // change to your audio type
-  };
-
-  // create multipart request
-  var request = http.MultipartRequest('POST', uri);
-  request.headers.addAll(headers);
-  // add file to request
-  var audioFile = await http.MultipartFile.fromPath('sound', file.path);
-  request.files.add(audioFile);
-
-  print(audioFilePath);
-
-  try {
-    // send request and get response
-    var response = await request.send();
-    if (response.statusCode == 200) {
-      var responseJson = await utf8.decodeStream(response.stream);
-      return responseJson;
-    } else {
-      return 'Failed to send audio: ${response.statusCode}';
-    }
-  } catch (error) {
-    return 'Failed to send audio: ${error.toString()}';
-  }
-}
